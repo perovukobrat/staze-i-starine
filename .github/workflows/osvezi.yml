@@ -1,0 +1,25 @@
+name: Osvezavanje podataka
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Podesavanje Python-a
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    - name: Pokretanje skripte
+      run: |
+        python -c "import json; import os; data = json.load(open('podaci.json', 'r', encoding='utf-8')) if os.path.exists('podaci.json') else []; json.dump(data, open('podaci.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=2)"
+    - name: Cuvanje izmena
+      run: |
+        git config --local user.email 'action@github.com'
+        git config --local user.name 'GitHub Action Robot'
+        git add podaci.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m 'Automatsko osvezavanje' && git push)
